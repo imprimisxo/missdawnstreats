@@ -292,6 +292,14 @@
 
   .order-action { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 
+  .buy-hint {
+    display: block;
+    width: 100%;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    line-height: 1.45;
+  }
+
   /* ---------- Section shell ---------- */
 
   section { padding: 68px 0; }
@@ -904,6 +912,11 @@
           smsLink.textContent = 'Order by text';
           el.appendChild(smsLink);
         }
+
+        var buyHint = document.createElement('span');
+        buyHint.className = 'buy-hint';
+        buyHint.textContent = 'Free local pickup · $10 delivery near Little Rock · ships within Arkansas only';
+        el.appendChild(buyHint);
       } else if (phone) {
         var messageOnly = "Hi Miss Dawn! I'd love to order the " + flavor +
           " (" + price + ", 3.5 oz). Could you let me know how to complete my order?";
