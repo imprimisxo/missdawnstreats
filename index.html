@@ -333,6 +333,29 @@
 
   #flavors { background: var(--white); border-top: 1px solid var(--cream-deep); border-bottom: 1px solid var(--cream-deep); }
 
+  #flavors .section-head { margin-bottom: 30px; }
+
+  .flavor-photo {
+    text-align: center;
+    margin: 0 auto 42px;
+  }
+
+  .flavor-photo img {
+    width: min(280px, 74%);
+    height: auto;
+    margin: 0 auto;
+    border-radius: 14px;
+    filter: drop-shadow(0 18px 28px rgba(33, 29, 28, 0.22));
+  }
+
+  .flavor-photo .photo-caption {
+    margin: 16px 0 0;
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 0.95rem;
+    color: var(--ink-soft);
+  }
+
   .flavor-grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -685,6 +708,17 @@
         <span class="eyebrow">The Lineup</span>
         <h2>Four Flavors, One Family Recipe</h2>
         <p>Each batch is handmade to order in small quantities, so it reaches you tasting the way it should.</p>
+      </div>
+
+      <div class="flavor-photo">
+        <img
+          src="assets/product-caramel.png"
+          alt="Miss Dawn's classic caramel popcorn in its handmade-labeled bag, packed full of glossy caramel-coated popcorn"
+          width="755"
+          height="900"
+          loading="lazy"
+        >
+        <p class="photo-caption">Pictured: the classic — every flavor ships in the same handmade bag.</p>
       </div>
 
       <div class="flavor-grid">
