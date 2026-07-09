@@ -290,7 +290,7 @@
     line-height: 1.4;
   }
 
-  .order-action { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 10px; }
+  .order-action { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 
   /* ---------- Section shell ---------- */
 
@@ -394,6 +394,41 @@
     font-size: 0.95rem;
     font-style: italic;
   }
+
+  .fulfillment-note {
+    max-width: 640px;
+    margin: 26px auto 0;
+    background: var(--cream);
+    border: 1px solid var(--cream-deep);
+    border-radius: var(--radius);
+    padding: 26px 28px;
+    text-align: left;
+  }
+
+  .fulfillment-note h3 {
+    font-family: var(--font-serif);
+    font-size: 1.15rem;
+    margin: 0 0 10px;
+  }
+
+  .fulfillment-note p {
+    color: var(--ink-soft);
+    margin: 0 0 14px;
+  }
+
+  .fulfillment-note ul {
+    margin: 0;
+    padding-left: 20px;
+    color: var(--ink-soft);
+  }
+
+  .fulfillment-note li {
+    margin-bottom: 8px;
+  }
+
+  .fulfillment-note li:last-child { margin-bottom: 0; }
+
+  .fulfillment-note strong { color: var(--ink); }
 
   /* ---------- Story ---------- */
 
@@ -709,6 +744,16 @@
       </div>
 
       <p class="allergen-note">Have a question about ingredients or allergens? Happy to walk you through exactly what's in every batch when you place your order.</p>
+
+      <div id="fulfillment-note" class="fulfillment-note" hidden>
+        <h3>How You'll Get Your Order</h3>
+        <p>Checkout is quick and secure, right here on this page — just pick the quantity you'd like for each flavor when you check out. Then choose how you'd like to receive it:</p>
+        <ul>
+          <li><strong>Local pickup — free.</strong> We'll arrange a time and place together after you order.</li>
+          <li><strong>Local delivery — $10.</strong> Available within 50 miles of Little Rock.</li>
+          <li><strong>Shipping — $15 flat rate — Arkansas only.</strong> I'm so sorry, but I'm only able to ship within Arkansas right now — not outside the state.</li>
+        </ul>
+      </div>
     </div>
   </section>
 
@@ -804,7 +849,14 @@
     phone: "",
     instagram: "",
     facebook: "",
-    email: ""
+    email: "",
+    // Real https://buy.stripe.com/ payment links get pasted here per flavor.
+    stripe: {
+      "Caramel Popcorn": "https://buy.stripe.com/bJe28sg3F8ar6CO9v7fIs01",
+      "Strawberry Velvet-Dusted Sweet Caramel": "https://buy.stripe.com/6oUcN6cRt4Yf4uGePrfIs02",
+      "Butter Toffee Infusion": "https://buy.stripe.com/00w14ocRt8ar0eqfTvfIs03",
+      "Sweet & Salty Caramel": "https://buy.stripe.com/3cI28seZBaiz1iu7mZfIs04"
+    }
   };
   // -------------------------------------------------------
 
@@ -813,20 +865,18 @@
     var instagram = (MDT_CONFIG.instagram || '').trim();
     var facebook = (MDT_CONFIG.facebook || '').trim();
     var email = (MDT_CONFIG.email || '').trim();
+    var stripeLinks = MDT_CONFIG.stripe || {};
+    var hasStripeLive = Object.keys(stripeLinks).some(function (key) {
+      return (stripeLinks[key] || '').trim() !== '';
+    });
 
     // Header + hero primary actions
     var headerCta = document.getElementById('header-cta');
     var heroCta = document.getElementById('hero-cta');
 
-    if (phone) {
-      var generalMessage = "Hi Miss Dawn! I'd like to place an order. Could you help me get started?";
-      var generalSmsHref = 'sms:' + phone + '?&body=' + encodeURIComponent(generalMessage);
-
-      headerCta.href = generalSmsHref;
-      headerCta.textContent = 'Order by Text';
-
-      heroCta.href = generalSmsHref;
-      heroCta.textContent = 'Order by Text';
+    if (hasStripeLive) {
+      headerCta.textContent = 'Shop Flavors';
+      heroCta.textContent = 'Shop the Flavors';
     }
 
     // Product order actions
@@ -834,32 +884,57 @@
     orderActions.forEach(function (el) {
       var flavor = el.getAttribute('data-flavor');
       var price = el.getAttribute('data-price');
+      var stripeLink = (MDT_CONFIG.stripe && MDT_CONFIG.stripe[flavor] || '').trim();
 
-      if (phone) {
-        var message = "Hi Miss Dawn! I'd love to order the " + flavor +
+      if (stripeLink) {
+        var buyLink = document.createElement('a');
+        buyLink.className = 'btn btn-order';
+        buyLink.href = stripeLink;
+        buyLink.textContent = 'Buy now';
+        el.appendChild(buyLink);
+
+        if (phone) {
+          var message = "Hi Miss Dawn! I'd love to order the " + flavor +
+            " (" + price + ", 3.5 oz). Could you let me know how to complete my order?";
+          var smsHref = 'sms:' + phone + '?&body=' + encodeURIComponent(message);
+
+          var smsLink = document.createElement('a');
+          smsLink.className = 'btn btn-call';
+          smsLink.href = smsHref;
+          smsLink.textContent = 'Order by text';
+          el.appendChild(smsLink);
+        }
+      } else if (phone) {
+        var messageOnly = "Hi Miss Dawn! I'd love to order the " + flavor +
           " (" + price + ", 3.5 oz). Could you let me know how to complete my order?";
-        var smsHref = 'sms:' + phone + '?&body=' + encodeURIComponent(message);
+        var smsOnlyHref = 'sms:' + phone + '?&body=' + encodeURIComponent(messageOnly);
 
-        var smsLink = document.createElement('a');
-        smsLink.className = 'btn btn-order';
-        smsLink.href = smsHref;
-        smsLink.textContent = 'Order by text';
+        var smsOnlyLink = document.createElement('a');
+        smsOnlyLink.className = 'btn btn-order';
+        smsOnlyLink.href = smsOnlyHref;
+        smsOnlyLink.textContent = 'Order by text';
 
         var telLink = document.createElement('a');
         telLink.className = 'btn btn-call';
         telLink.href = 'tel:' + phone;
         telLink.textContent = 'Call to order';
 
-        el.appendChild(smsLink);
+        el.appendChild(smsOnlyLink);
         el.appendChild(telLink);
       } else {
-        var soon = document.createElement('span');
-        soon.className = 'btn-soon';
-        soon.setAttribute('role', 'note');
-        soon.textContent = 'First batches coming soon — check back to order';
-        el.appendChild(soon);
+        var unavailable = document.createElement('span');
+        unavailable.className = 'btn-soon';
+        unavailable.setAttribute('role', 'note');
+        unavailable.textContent = 'Online ordering is temporarily unavailable.';
+        el.appendChild(unavailable);
       }
     });
+
+    // Fulfillment note (pickup / delivery / shipping) — only once ordering is live
+    var fulfillmentNote = document.getElementById('fulfillment-note');
+    if (fulfillmentNote && hasStripeLive) {
+      fulfillmentNote.removeAttribute('hidden');
+    }
 
     // Weddings & events inquiry action
     var eventsAction = document.getElementById('events-action');
@@ -879,12 +954,18 @@
 
       eventsAction.appendChild(eventSmsLink);
       eventsAction.appendChild(eventTelLink);
+    } else if (hasStripeLive) {
+      var eventsNote = document.createElement('span');
+      eventsNote.className = 'btn-soon';
+      eventsNote.setAttribute('role', 'note');
+      eventsNote.textContent = 'Place an order for any flavor to get started, then simply reply to your emailed Stripe receipt with your event details — Miss Dawn will follow up personally about favors and larger batches.';
+      eventsAction.appendChild(eventsNote);
     } else {
-      var eventsSoon = document.createElement('span');
-      eventsSoon.className = 'btn-soon';
-      eventsSoon.setAttribute('role', 'note');
-      eventsSoon.textContent = 'Ordering opens soon on this page — check back to ask about your event';
-      eventsAction.appendChild(eventsSoon);
+      var eventsUnavailable = document.createElement('span');
+      eventsUnavailable.className = 'btn-soon';
+      eventsUnavailable.setAttribute('role', 'note');
+      eventsUnavailable.textContent = 'Online ordering is temporarily unavailable.';
+      eventsAction.appendChild(eventsUnavailable);
     }
 
     // Connect section
@@ -930,10 +1011,21 @@
         fbLink.textContent = 'Facebook';
         connectLinks.appendChild(fbLink);
       }
+    } else if (hasStripeLive) {
+      var openNote = document.createElement('p');
+      openNote.className = 'connect-soon';
+      openNote.textContent = 'Ordering is open! Pick your flavors and quantities right on this page — tap Buy now above to check out securely.';
+      connectLinks.appendChild(openNote);
+
+      var shopLink = document.createElement('a');
+      shopLink.className = 'connect-link';
+      shopLink.href = '#flavors';
+      shopLink.textContent = 'Shop the Flavors';
+      connectLinks.appendChild(shopLink);
     } else {
       var soonNote = document.createElement('p');
       soonNote.className = 'connect-soon';
-      soonNote.textContent = "Ordering opens soon, right here on this page — thanks for your patience while we get set up.";
+      soonNote.textContent = 'Online ordering is temporarily unavailable.';
       connectLinks.appendChild(soonNote);
     }
 
